@@ -31,6 +31,8 @@ def Cor():
     url = input("What ip/url do you wanna send requests to?: (Needed)")
     headers = input("Headers, dict format: (Enter/{}) ") 
     thread_len = input("Do you want to loop this request infinitely? If so, on how many threads: (Enter/Int) ")
+    if not url.startswith('https://') or not url.startswith('http://'):
+        url = f'https://{url}'
     if thread_len:
         Attacker(thread_len=int(self.thread_len)).post(url, headers)
 
